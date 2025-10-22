@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CAVERNA – Spécial Prophètes</title>
+  <style>
+    body{margin:0;font-family:system-ui;background:#0b0b0e;color:#f4f6fb;padding:20px}
+    h1{color:#fbc576}
+    button{background:#fbc576;color:#1b1204;border:0;border-radius:10px;padding:10px 15px;margin:5px;cursor:pointer;font-weight:bold}
+    .card{background:#14141a;padding:20px;border-radius:15px;margin-top:10px}
+    .hidden{display:none}
+    .rtl{direction:rtl;font-size:26px;line-height:1.8;margin:10px 0;padding:10px;border-radius:12px;background:#0e0e13}
+    input{width:100%;padding:10px;border-radius:10px;border:1px solid #2a2a36;background:#0f0f14;color:white;margin-top:10px}
+    audio{width:100%;margin-top:10px}
+  </style>
+</head>
+<body>
+  <section id="home" class="card">
+    <h1>🕋 CAVERNA – Spécial Prophètes</h1>
+    <p>Une micro-aventure coranique : retrouve le Prophète évoqué par le verset, écoute la récitation, découvre un mot-clé et emporte une leçon à vivre.</p>
+    <button onclick="goto('mission')">Commencer</button>
+  </section>
+
+  <section id="mission" class="card hidden">
+    <h2>🎯 Mission</h2>
+    <p><strong>Référence :</strong> Sourate 12, verset 20</p>
+    <p>De quel Prophète parle ce verset ?</p>
+    <button onclick="check('Moussa')">Moussa (a.s)</button>
+    <button onclick="check('Youssouf')">Youssouf (a.s)</button>
+    <button onclick="check('Ibrahim')">Ibrahim (a.s)</button>
+    <p id="feedback"></p>
+    <button onclick="goto('search')">Voir le verset</button>
+  </section>
+
+  <section id="search" class="card hidden">
+    <h2>🔍 Recherche du verset</h2>
+    <input id="searchInput" placeholder="Ex: 12:20 ou sabr">
+    <button onclick="searchVerse()">Rechercher</button>
+    <div id="results"></div>
+  </section>
+
+  <section id="verse" class="card hidden">
+    <h2>📖 Verset</h2>
+    <p id="meta"></p>
+    <div id="ar" class="rtl"></div>
+    <div id="fr"></div>
+    <audio id="player" controls></audio>
+    <h3>🎙️ Tafsir audio</h3>
+    <audio id="tafsir" src="assets/tafsir.mp3" controls></audio>
+    <button onclick="goto('home')">Retour accueil</button>
+  </section>
+
+  <script>
+    const API='https://alquran-api.pages.dev/api/quran';
+    const AYAH=(r,s,a)=>`https://cdn.islamic.network/quran/audio/ayah/128/${r}/${s}:${a}.mp3`;
+
+    const scr=(id)=>document.getElementById(id);
+    function goto(id){['home','mission','search','verse'].forEach(x=>scr(x).classList.add('hidden'));scr(id).classList.remove('hidden');}
+
+    function check(ans){
+      const fb=scr('feedback');
+      if(ans==='Youssouf'){fb.innerHTML='✅ Bonne réponse : c’est Youssouf (a.s) !';}
+      else{fb.innerHTML='❌ Mauvaise réponse. Consulte le verset.';}
+    }
+
+    async function searchVerse(){
+      const q=scr('searchInput').value.trim();
+      const resBox=scr('results');
+      if(!q){resBox.innerHTML='<p>Entrez un mot ou une référence.</p>';return;}
+      const ref=q.match(/(\\d{1,3})[:.,-](\\d{1,3})/);
+      if(ref){openVerse(ref[1],ref[2]);return;}
+      const r=await fetch(`${API}/search?q=${encod
